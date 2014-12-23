@@ -8,6 +8,9 @@
 <script src="mapresso.js"></script>
 <script>
 
+/* ************************************************************ */
+// The customizing part
+
 var width = 960,
     height = 600;
 
@@ -26,14 +29,15 @@ var datatxt = "data/ausschaffungsinitiative.tsv";
 var mx3id = "BFS", mx3var = "ja_proz";
 
 var mtyp = 1;
+</script>
 
-
-
+<script>
 /* ************************************************************ */
+// To be parametrized
 
 // Model 1: from white to blue (not active)
 
-var hue = 230;
+var hue = 240; // 10 punkte falscher: 240
 var mapresso1 = {
   zfact: 1.5,
   colorMin: d3.hsl(hue, 1, 0.96),
@@ -60,7 +64,7 @@ var mapresso2 = {
 
 
 /* ************************************************************ */
-
+// The program
 
 var mapresso = mtyp === 1 ? mapresso1 : mapresso2; // activation of model 2
 
