@@ -14,6 +14,19 @@
 var width = 960,
     height = 700;
 
+var syriamap = {
+
+  geo: "geo/SYR_admin1.topojson",
+  geoid: "governorates",
+
+  datatxt: "data/ausschaffungsinitiative.tsv",
+  dataid: "BFS",
+  datavar: "ja_proz",
+
+  mtyp: 1
+
+}
+
 var projection = d3.geo.albers()
     .center([38.5, 35.4])
     .rotate([0, 0])
@@ -21,13 +34,9 @@ var projection = d3.geo.albers()
     .scale(4000)
     .translate([width / 2, height / 2]);
 
+syriamap.projection = projection;
 
-var geo = "geo/SYR_admin1.topojson";
-var mx3arealunits = "governorates";
+mx3 = syriamap;
 
-var datatxt = "data/ausschaffungsinitiative.tsv";
-var mx3id = "BFS", mx3var = "ja_proz";
-
-var mtyp = 1;
 </script>
 <script src="mx3.js"></script>

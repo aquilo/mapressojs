@@ -1,9 +1,8 @@
 /* ************************************************************ */
-// To be parametrized
 
 // Model 1: from white to blue (not active)
 
-var hue = 240; // 10 punkte falscher: 240
+var hue = 240;
 var mapresso1 = {
   zfact: 1.5,
   colorMin: d3.hsl(hue, 1, 0.96),
@@ -32,7 +31,7 @@ var mapresso2 = {
 /* ************************************************************ */
 // The program
 
-var mapresso = mtyp === 1 ? mapresso1 : mapresso2; // activation of model 2
+var mapresso = mx3.mtyp === 1 ? mapresso1 : mapresso2; // activation of model 2
 
 var thedata = d3.map();
 
@@ -44,9 +43,9 @@ var svg = d3.select("body").append("svg")
     .attr("height", height);
 
 queue()
-    .defer(d3.json, geo)
-    .defer(d3.tsv, datatxt, function(d) { 
-      thedata.set(d[mx3id], +d[mx3var]); 
+    .defer(d3.json, mx3.geo)
+    .defer(d3.tsv, mx3.datatxt, function(d) { 
+      thedata.set(d[mx3.dataid], +d[mx3.datavar]); 
     })
     .await(ready);
 
@@ -63,9 +62,9 @@ function ready(error, geometry) {
 /* ************************************************************ */
 
   svg.append("g")
-      .attr("class", mx3arealunits)
+      .attr("class", mx3.geoid)
     .selectAll("path")
-      .data(topojson.feature(geometry, geometry.objects[mx3arealunits]).features)
+      .data(topojson.feature(geometry, geometry.objects[mx3.geoid]).features)
     .enter().append("path")
       .style('fill', mapresso.classify)     // apply the classification
       .attr("d", path);
