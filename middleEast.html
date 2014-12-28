@@ -6,7 +6,19 @@
 .subunit.IRK { fill: #cdd; }
 .subunit.SYX { fill: #cdc; }
 .subunit.IRR { fill: #ccd; }
+.subunit-label {
+  fill: #777;
+  fill-opacity: .5;
+  font-size: 10px;
+  font-weight: 10;
+  text-anchor: middle;
+}
 
+text {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  pointer-events: none;
+}
 
 </style>
 <body>
@@ -20,7 +32,7 @@ var width = 960,
     .center([0, 30])
     .rotate([-45, 0])
     .parallels([40, 45])
-    .scale(1700)
+    .scale(2100)
     .translate([width / 2, height / 2]);
 
 var path = d3.geo.path()
@@ -31,12 +43,30 @@ var svg = d3.select("body").append("svg")
     .attr("height", height);
 
 
+
+
 d3.json("me.json", function(error, me) {
 svg.selectAll(".subunit")
       .data(topojson.feature(me, me.objects.subunits).features)
     .enter().append("path")
       .attr("class", function(d) { return "subunit " + d.id; })
       .attr("d", path);
+
+
+        svg.append("path")
+      .datum(topojson.feature(me, me.objects.places))
+      .attr("d", path)
+      .attr("class", "place");
+
+      svg.selectAll(".place-label")
+      .data(topojson.feature(me, me.objects.places).features)
+    .enter().append("text")
+      .attr("class", "place-label")
+      .attr("transform", function(d) { return "translate(" + projection(d.geometry.coordinates) + ")"; })
+      .attr("x", function(d) { return d.geometry.coordinates[0] > -1 ? 6 : -6; })
+      .attr("dy", ".35em")
+      .style("text-anchor", function(d) { return d.geometry.coordinates[0] > -1 ? "start" : "end"; })
+      .text(function(d) { return d.properties.name; });
 });
 
 
