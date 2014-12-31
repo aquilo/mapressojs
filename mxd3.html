@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<p id="example">
+<script src="lib/d3.v3.min.js"></script>
+<script src="lib/queue.v1.min.js"></script>
+<script src="lib/topojson.v1.min.js"></script>
+<script src="mx3utils.js"></script>
+<script>
+
+/* ************************************************************ */
+// The customizing part
+function mxd3() {
+  var width = 720, // default width
+      height = 800, // default height
+      geoid = "ID",
+      colors = [];
+
+  function my(selection) {
+    var thedata = Array();
+
+      selection.each(function(data, i) {
+    // generate chart here; `d` is the data and `this` is the element
+
+      // Convert data to standard representation greedily;
+      // this is needed for nondeterministic accessors.
+
+      data = data.map(function(d, i) {
+        thedata[i] = +d[datavar];
+            return [d[dataid], +d[datavar]]; 
+      });
+       /* ************************************************************ */
+ // zbot, ztop and zmed not yet defined
+ // we calculate theses with mean and zfact * standard deviation
+ var r = average(thedata);
+  mapresso.zbot = r.mean - mapresso.zfact * r.deviation;
+  mapresso.ztop = r.mean + mapresso.zfact * r.deviation;
+  mapresso.zmed = r.mean;
+  mapresso.zrange = mapresso.ztop - mapresso.zbot;
+  console.log(r.mean + " " + r.variance + " " + r.deviation + " " + mapresso.zrange + " " + mapresso.zbot + " " + mapresso.zmed + " " + mapresso.ztop)
+/* ************************************************************ */
+
+
+
+  });
+/* ************************************************************ */
+
+// Model 1: from white to blue (not active)
+
+var mapresso1 = {
+  zfact: 1.5,
+  colorMin: d3.hsl(hue, 1, 0.96),
+  colorBot: d3.hsl(hue, 1, 0.94),
+  colorTop: d3.hsl(hue, 1, 0.06),
+  colorMax: d3.hsl(hue, 1, 0.03),
+
+  classify: mapressoproc.classify1
+}
+
+// Model 2: from red via yellow to green
+
+var mapresso2 = {
+  zfact: 1.5,
+  colorMin: d3.rgb(200, 0, 0),
+  colorBot: d3.rgb(255, 0, 0),
+  colorMedBot: d3.rgb(255, 255, 51),
+  colorMedTop: d3.rgb(224, 255, 0),
+  colorTop: d3.rgb(0, 255, 51),
+  colorMax: d3.rgb(0, 136, 85),
+
+  classify: mapressoproc.classify2
+}
+
+/* ************************************************************ */
+// The program
+
+var mapresso = mtyp === 1 ? mapresso1 : mapresso2; // activation of model 2
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+queue()
+    .defer(d3.json, geo).await(ready);
+//    .defer(d3.tsv, mx3.datatxt, function(d) { 
+ //     thedata.set(d[mx3.dataid], +d[mx3.datavar]); 
+//    })
+    
+
+function ready(error, geometry) {
+
+  svg.append("g")
+      .attr("class", mx3.geoid)
+    .selectAll("path")
+      .data(topojson.feature(geometry, geometry.objects[mx3.geoid]).features)
+    .enter().append("path")
+      .style('fill', mapresso.classify)     // apply the classification
+      .attr("d", path);
+
+}
+
+  }
+
+  my.width = function(value) {
+    if (!arguments.length) return width;
+    width = value;
+    return my;
+  };
+
+  my.height = function(value) {
+    if (!arguments.length) return height;
+    height = value;
+    return my;
+  };
+
+  my.geo = function(value) {
+    if (!arguments.length) return geo;
+    geo = value;
+    return my;
+  };
+
+  my.geoid = function(value) {
+    if (!arguments.length) return geoid;
+    geoid = value;
+    return my;
+  };
+
+  my.projection = function(value) {
+    if (!arguments.length) return projection;
+    projection = value;
+    return my;
+  };
+
+  my.mtyp = function(value) {
+    if (!arguments.length) return mtyp;
+    mtyp = value;
+    return my;
+  };
+
+  my.colors = function(value) {
+    if (!arguments.length) return colors;
+    colors = value;
+    return my;
+  };
+
+  my.datatxt = function(value) {
+    if (!arguments.length) return datatxt;
+    datatxt = value;
+    return my;
+  };
+
+  my.dataid = function(value) {
+    if (!arguments.length) return dataid;
+    dataid = value;
+    return my;
+  };
+
+  my.datavar = function(value) {
+    if (!arguments.length) return datavar;
+    datavar = value;
+    return my;
+  };
+
+  return my;
+}
+
+var width = 960;
+var height = 700;
+
+var projection = d3.geo.albers()
+    .center([38.5, 35.4])
+    .rotate([0, 0])
+    .parallels([37, 42])
+    .scale(4000)
+    .translate([width / 2, height / 2]);
+
+var mymap = mxd3();
+var hue = 240;
+
+d3.tsv("data/ausschaffungsinitiative.tsv", function(data) {
+
+  d3.select("#example")
+      .datum(data)
+    .call(mxd3()
+   //   .x(function(d) { return formatDate.parse(d.date); })
+   //   .y(function(d) { return +d.price; })
+   );
+});
+
+
+
+mymap
+.width(width)
+.height(height)
+.geo("geo/SYR_admin1.topojson")
+.projection(projection)
+.geoid('governorates')
+.colors([
+  d3.hsl(hue, 1, 0.96), 
+  d3.hsl(hue, 1, 0.94),
+  d3.hsl(hue, 1, 0.06),
+  d3.hsl(hue, 1, 0.03)])
+.mtyp(1)
+.datatxt("data/ausschaffungsinitiative.tsv")
+.dataid("BFS")
+.datavar("ja_proz");
+
+d3.select(self.frameElement).style("height", height + "px");
+
+
+
+
+</script>
+<xscript src="mx3.js"></xscript>
