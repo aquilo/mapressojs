@@ -15,9 +15,10 @@ function mxd3() {
       height = 800, // default height
       geoid = "ID",
       colors = [];
+      zfact = 1.5;
+     var thedata = Array();
 
-  function my(selection) {
-    var thedata = Array();
+  function karte(selection) {
 
       selection.each(function(data, i) {
     // generate chart here; `d` is the data and `this` is the element
@@ -25,27 +26,30 @@ function mxd3() {
       // Convert data to standard representation greedily;
       // this is needed for nondeterministic accessors.
 
-      data = data.map(function(d, i) {
-        thedata[i] = +d[datavar];
-            return [d[dataid], +d[datavar]]; 
-      });
-       /* ************************************************************ */
+        data = data.map(function(d, i) {
+          thedata[i] = +d[datavar];
+  //        return [d[dataid], +d[datavar]]; 
+          return d;
+        });
+
+      /* ************************************************************ */
  // zbot, ztop and zmed not yet defined
  // we calculate theses with mean and zfact * standard deviation
- var r = average(thedata);
-  mapresso.zbot = r.mean - mapresso.zfact * r.deviation;
-  mapresso.ztop = r.mean + mapresso.zfact * r.deviation;
-  mapresso.zmed = r.mean;
-  mapresso.zrange = mapresso.ztop - mapresso.zbot;
-  console.log(r.mean + " " + r.variance + " " + r.deviation + " " + mapresso.zrange + " " + mapresso.zbot + " " + mapresso.zmed + " " + mapresso.ztop)
-/* ************************************************************ */
-
+ 
 
 
   });
 /* ************************************************************ */
 
 // Model 1: from white to blue (not active)
+
+var r = average(thedata);
+  zbot = r.mean - zfact * r.deviation;
+  ztop = r.mean + zfact * r.deviation;
+  zmed = r.mean;
+  zrange = ztop - zbot;
+  console.log(r.mean + " " + r.variance + " " + r.deviation + " " + zrange + " " + zbot + " " + zmed + " " + ztop)
+/* ************************************************************ */
 
 var mapresso1 = {
   zfact: 1.5,
@@ -93,78 +97,85 @@ queue()
 function ready(error, geometry) {
 
   svg.append("g")
-      .attr("class", mx3.geoid)
+      .attr("class", geoid)
     .selectAll("path")
-      .data(topojson.feature(geometry, geometry.objects[mx3.geoid]).features)
+      .data(topojson.feature(geometry, geometry.objects[geoid]).features)
     .enter().append("path")
-      .style('fill', mapresso.classify)     // apply the classification
+//      .style('fill', mapresso.classify)     // apply the classification
+      .style('stroke', '#F00')     // apply the classification
       .attr("d", path);
 
 }
 
   }
 
-  my.width = function(value) {
+  karte.width = function(value) {
     if (!arguments.length) return width;
     width = value;
-    return my;
+    return karte;
   };
 
-  my.height = function(value) {
+  karte.height = function(value) {
     if (!arguments.length) return height;
     height = value;
-    return my;
+    return karte;
   };
 
-  my.geo = function(value) {
+  karte.geo = function(value) {
     if (!arguments.length) return geo;
     geo = value;
-    return my;
+    return karte;
   };
 
-  my.geoid = function(value) {
+  karte.geoid = function(value) {
     if (!arguments.length) return geoid;
     geoid = value;
-    return my;
+    return karte;
   };
 
-  my.projection = function(value) {
+  karte.projection = function(value) {
     if (!arguments.length) return projection;
     projection = value;
-    return my;
+    return karte;
   };
 
-  my.mtyp = function(value) {
+  karte.mtyp = function(value) {
     if (!arguments.length) return mtyp;
     mtyp = value;
-    return my;
+    return karte;
   };
 
-  my.colors = function(value) {
+  karte.zfact = function(value) {
+    if (!arguments.length) return zfact;
+    zfact = value;
+    return karte;
+  };
+
+  karte.colors = function(value) {
     if (!arguments.length) return colors;
     colors = value;
-    return my;
+    return karte;
   };
 
-  my.datatxt = function(value) {
+  karte.datatxt = function(value) {
     if (!arguments.length) return datatxt;
     datatxt = value;
-    return my;
+    return karte;
   };
 
-  my.dataid = function(value) {
+  karte.dataid = function(value) {
     if (!arguments.length) return dataid;
     dataid = value;
-    return my;
+    return karte;
   };
 
-  my.datavar = function(value) {
+  karte.datavar = function(value) {
     if (!arguments.length) return datavar;
     datavar = value;
-    return my;
+    return karte;
   };
 
-  return my;
+  return karte;
 }
 
 var width = 960;
@@ -177,22 +188,43 @@ var projection = d3.geo.albers()
     .scale(4000)
     .translate([width / 2, height / 2]);
 
-var mymap = mxd3();
 var hue = 240;
+projection = null;
+
+mymap = d3.select("#example");
 
 d3.tsv("data/ausschaffungsinitiative.tsv", function(data) {
 
-  d3.select("#example")
+//  d3.select("#example")
+  mymap
       .datum(data)
     .call(mxd3()
-   //   .x(function(d) { return formatDate.parse(d.date); })
-   //   .y(function(d) { return +d.price; })
-   );
+      .width(width)
+      .height(height)
+      // .geo("geo/SYR_admin1.topojson")
+       .datatxt("data/ausschaffungsinitiative.tsv")
+      .dataid("BFS")
+      .datavar("ja_proz")
+     .geo("geo/ch-municipalities-lakes.json")
+      .projection(projection)
+      .geoid('municipalities')
+      .colors([
+        d3.hsl(hue, 1, 0.96), 
+        d3.hsl(hue, 1, 0.94),
+        d3.hsl(hue, 1, 0.06),
+        d3.hsl(hue, 1, 0.03)])
+      .mtyp(1)
+        //   .x(function(d) { return formatDate.parse(d.date); })
+         //   .y(function(d) { return +d.price; })
+    );
 });
 
 
+ xxx = d3.select("#example");
+ xxx.call(mxd3().width(233))
 
-mymap
+
+/* mymap
 .width(width)
 .height(height)
 .geo("geo/SYR_admin1.topojson")
@@ -207,8 +239,10 @@ mymap
 .datatxt("data/ausschaffungsinitiative.tsv")
 .dataid("BFS")
 .datavar("ja_proz");
+*/
 
-d3.select(self.frameElement).style("height", height + "px");
+
+// d3.select(self.frameElement).style("height", height + "px");
 
 
 
